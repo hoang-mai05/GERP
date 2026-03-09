@@ -1,0 +1,321 @@
+*******************************************************************************
+  Project Gerp!
+  CS 15: Hoang Mai, Stacey Liang
+  README
+
+*******************************************************************************
+
+Compile/run:
+     - Compile using
+        make gerp
+     - run executable with
+        ./gerp inputDirectory outputFile 
+
+*******************************************************************************
+
+Program Purpose: 
+     
+     The program purpose is that, given a directory that contains a set of 
+     files, build a data structure that indexes them, and using that index,
+     respond to the user queries.
+
+*******************************************************************************
+
+Acknowledgements: 
+
+     N/A
+
+*******************************************************************************
+
+Architectural Overview:
+
+     Processing.cpp is functionalities that we implemented in our gerp class 
+     and is used to index all of the file contents and hashTables. For example
+     nonStripAlpha is used as a response to the query input and additionally,
+     how we store a given word and its location.
+
+     Sentence.h is the "key" for our hash Table on how to access our Vector of 
+     Files. Given a word, we find the index in our hash Table and access the 
+     file number and line number. We have the first index of each vector of 
+     Lines be the path of the line itself, so we can print our the path to a 
+     certain line and its content with its file number and line number as 
+     coordinates. And since vectors are indexed at 0, having it so that the 
+     path is the first index of every vector of Lines makes accessing a 
+     particular line straight forward. 
+     
+     If we want to access the first file first line, then 1 1 does this sequence
+
+     Basic Level Structure of our implementation:
+
+
+     hashVector : 
+
+       Bucket 1   Bucket 2   Bucket 3   Bucket 4   Bucket 5 
+     |  pair  1 |  pair  2 |  pair  3 |  pair  4 |  pair  5 |
+
+     In each pair, there contains a sentence Struct:
+     
+     Sentence Struct:
+
+     fileNum  -> what File Number the user wants to access
+     lineNum  -> what Line Number the user wants to access
+     word     -> the word the query wants to find
+
+
+         File 1      File 2      File 3      File 4     <- Vector of Files
+
+     |   Path 1  |   Path 2  |   Path 3  |   Path 4  |  <- Each Line is a 
+     |   Line 1  |   Line 2  |   Line 3  |   Line 4  |     pair of T/F and 
+     |           |           |           |           |     the line content
+
+
+     Return: Path 1
+
+*******************************************************************************
+
+Files:
+
+     processing.h:       Interface of the processing Class
+     processing.cpp:     Implementation of the processing Class
+
+     unit_tests.h:       Unit Tests for the processing Class
+
+     sentence.h:         Interface of the sentence Struct
+
+     gerp.h:             Interface of the gerp Class
+     gerp.cpp:           Implementation of the gerp Class
+
+     main.cpp:           Driver File which interacts with the user, files, and
+                         extraneous classes
+
+     hashMap.h:          Interface of the hashMap Class
+     hashMap.cpp:        Implementation of the gerp Class 
+
+     Makefile:           Compile each file together to make an executable
+
+     Gutenberg:          Used to test the index times and query functions
+
+
+*******************************************************************************
+
+Data Structure:
+
+     ADT: 
+     
+     Since Gerp involves a nuanced amount of different data structures,
+     we will be organizing this section into two compartments, one being
+     how we access a certain word given an index, and returning the hash 
+     index, and the other being the data structure that stores our files and
+     file contents. We start from the "lowest" level of data structure, and
+     work up to the organization of said data structure.
+
+     File Content Storage: 
+     
+                       pair <string,bool>
+     
+     1. Our lowest data structure contains a pair. The first component is a 
+     string that represents string of a unique line Content of a particular 
+     file. The boolean variable represents whether or not the line has been 
+     seen or not. The reason why we included this variance is because for 
+     cases where theres duplicates of a word in the same line, we do not
+     output that line more than once. Additionally, the boolean makes it 
+     the insensitive duplicate case much more managable, because if we
+     come across the same line more than once, setting the seen bool to true 
+     allows it to skip it over
+     
+              vector < pair <string,bool> >
+     
+     2. The next level to the File Content is a vector. This vector represents
+     all the lines in a unique, single file.
+
+     vector < vector < pair <string,bool> > >      
+
+     3. Lastly, the outer most vector represents a vector of all the possible
+     files are in a given directory. 
+
+     Reset Vector:
+      
+              pair <int, int>
+
+     1. The pair stores two integers which stores the file number and a line 
+     number. This is so that we can just reset the boolean in the file content 
+     after a query has processed  
+
+     vector < pair <int, int> > resetChecker;
+
+     2.  For instance, if A
+     given word, let the word be "cat", is repeated numerous times in a line 
+     in numerous occasions throughout a directory, then the resetChecker will 
+     go through the "coordinates" of a given line, and reset the boolean 
+     in the vectorFiles data structure, for the entirety of the size of the 
+     resetChecker vector. Afterwards, we can just clear the vector after a 
+     queue.
+
+     hashTable Implementation: 
+     
+     We used the hashMap functionality to access a given word within O(1) time.
+                      <Sentence>
+     
+     1. Sentence is a struct definition that contains two integers, the file 
+     number and line number, and the word in the text without conversions. We 
+     made this a class definition in order for both our gerp class and our 
+     hashMap class to know the same constraints of the sentence struct.
+
+               vector <Sentence>
+     
+     2. We have a vector of sentence structs because given a word in a file, 
+     there are numerous instances of that word being in a sentence.
+
+     pair < string, vector<Sentence>>* hashVector; 
+     
+     3. Lastly, we have a pair that stores all of these sentence structs! The
+     string is the inputted word from the text, stripped of non-Alpha numeric 
+     characters, and lowercased completely. The reason we chose this approach 
+     to combining sensitive and insensitive cases is that it makes insensitive 
+     cases infinitely easier to produce, and in the worst case for sensitive, 
+     it has to iterate through all the sentence strucut and access the word,
+     and then output it. We decided that because we group both cases into one 
+     bucket of the hashVector, it takes a lot less time to index with the 
+     tradeoff being slower query time for sensitive cases.
+
+     Algorithm: 
+
+          ProcessLine(): 
+     
+     This function makes it so that when we store a certain 
+     word and its file and line number, it first lowercases the given word,
+     and passes it to the insertHash() function that puts it in our hash Table.
+     What is interesting with this algorithm is that it purposely groups all 
+     combinations of a certain word together in a given bucket, making 
+     insensitive cases really easy.
+
+          Index Content():
+
+     The algorithm behind this is how we make the vector not 0 indexed anymore.
+     At the beginning of the function, we push the path of the line as the 
+     first element in the vector of lines. Accordingly, this makes it so that
+     we need to always access the 0th element for the path, and the subsequent
+     position of a line in a given file index. 
+
+          ReHash():
+     
+     We update the size of the Hash table and create new memory on the heap 
+     that our hashVector points to. Iterating through the old size of the Hash
+     Vector, we access the string and vector of sentence, use the hash function
+     to access the index. We first need to check if accessing a given index of
+     the old hashVector is empty since we do not need to rehash those values. 
+     Sequentially, we check for the case where when rehashing, we also run into
+     a collision. If so, update the index. Finally, add that old pair into 
+     the new Hashmap, delete the old HashMap, and make HashVector point to 
+     the new Hashmap.
+
+          resetSeen():
+     
+     This algorithm was used to reset our boolean inside our pairs in the vector
+     of files. Given a vector of pairs, we were able to deduce the same line of
+     reasoning with accessing a specific file and line number, and reset that 
+     specific checker. The reason why we chose a vector to store the pair is so
+     that when there is multiple duplicates for an insensitive case. At first, 
+     our initial thought was that using an array that stored the index of what 
+     file number we need to reset would take too much time as not every line 
+     within a file will be seen given a word.Consequently, using the coordinate 
+     approach, we allocated a vector that stored the "seen" coordinates, reset 
+     the bool, then cleared the vector for later use.
+
+          getHashVector():
+
+     This function firstly checks if a given word stripped of non-alpha numeric 
+     characters is a length of size 0. The reason behind is because we do not 
+     want our program to think that the input command is just " " and print 
+     every line with a space. It then iterates through the entire array 
+     until the associated word has been found; however, we do not want it 
+     to traverse through the array more than once, so we have a conditional 
+     that checks if the index % hashSize == to the initial index itself.
+
+*******************************************************************************
+
+Testing:
+
+     Unit Testing:
+
+          We use the unit test framework to verify the functionality of 
+          stripping non-alphabetic characters from strings, traversing 
+          directories, storing content from files, and inserting key-value 
+          pairs into a hashmap. The reasoning behind using unit testing 
+          for this approach is that we want to test the basic functions of our
+          larger framework, and for testing the output statements when running 
+          our program, diffing makes it more logical.
+
+          stripNonAlphaNum: 
+          
+          We used unit testing with this function since the only
+          parameters it can take are strings, a variable type that is easy
+          to unit test to and compare with. We declared the combinations that
+          are possible with the input that the user could choose: A normal 
+          input, non-Alphanumeric characters in the front, non-Alphanumeric
+          characters at the back of the input, both the front and back, and 
+          in between the given input to ensure that testing is done thorough 
+          and the function is general for all query cases.
+
+     Test directory traversal with the following test directories:
+
+          - onlyFiles: A directory created to test conditions where only files 
+          are present in the directory provided to the program.
+          - onlySubDir: A directory created to test conditions where only 
+          subdirectories are present in the directory provided to the program.
+          - empty: An empty directory created to test conditions where no files 
+          or subdirectories are present.
+
+     Test the gerp program:
+
+          We test the program using all command files provided in 
+          proj-gerp-sample-execution on the small, medium, and large Gutenberg 
+          directories. For each test, we compare our output file with the 
+          output from reference program using the diff command. Additionally, 
+          we test the @f command by comparing both first and second output 
+          files with the output from reference program.
+
+     Test for the inability to open input or output files:
+
+          - Input file: Test by restricting the permissions of files in the 
+            testing directory with "chmod 000" command and modify the error 
+            message to match the output from the reference program.
+          - First output file: We noticed that the error message for failing to 
+            open the first output file appears before the message for the input 
+            file, so we adjust the order in which the files are opened.
+          - Output file provided with the @f command: We found that the error 
+            message for this file includes the file name, so we ensure that it
+            is printed correctly.
+
+     Edge Cases:
+
+          Additional test and command files are created to cover edge cases:
+          - Nonexistent directory name: To properly exit the program when given 
+            an invalid directory name, we catch the runtime error from the 
+            FSTree constructor and print the error message.
+          - Empty files in provided directory
+          - Multi-word query
+          - Entirely non-alphanumeric input
+          - Single character string input
+          - Using @f command multiple times: Test by comparing all output files
+            with reference output files
+          - If a word exists in a different form (For example, Hi is in small
+            gutenberg but hi isn't), make sure to print out word isn't found if
+            user inputs hi
+
+     Runtime and memory usage: 
+
+          We use the gerp_perf command to check our runtime and memory usage 
+          to ensure they are within the specified limits. Something to note was 
+          that intially, our gerp used 6.06 GB of ram. We searched up and found 
+          that by choosing an initial Hash Size to be a prime number, less 
+          collisions can occur, reducing the total amount of space needed for
+          our hash table. For example, if we made our hashSize to be 10 or 20,
+          there will be more numbers modded with 10 or 20 that have the same 
+          value in contrary to modding with 11 or 23.
+
+*******************************************************************************
+
+Time Spent: ~20 Hours
+
+*******************************************************************************
