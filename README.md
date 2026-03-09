@@ -2,10 +2,12 @@
 **Project Gerp!** is a high-performance information retrieval system utilized to index large directories of files and respond to user queries in the linux environment. The program mimics the functionality of the Unix ```grep``` command but utilizes a pre-indexed data structure to provide $O(1)$ word lookups.
 ---
 ## Features
+
 **Efficient Indexing:** Traverses complex directory trees to index all file contents
 **Fast Querying**: Uses a custom Hash Map implementation to achieve constant time complexity for word searches.
 **Flexible Search:** Supports both case-sensitive and case-insensitive (```@i```) queries.
 **Dynamic Output:** Allows users to redirect query results to different files on the fly using the ```@f``` command.
+
 ---
 ## Architectural Overview
 The system is built upon a nested data structure designed for both speed and storage efficiency:
