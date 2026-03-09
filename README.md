@@ -1,2 +1,2 @@
-# GERP
-A robust data structures implementation of Linux's "grep" command, a way to access strings and texts within files and standard input
+# Project Gerp!
+Project Gerp! is a high-performance information retrieval system utilized to index large directories of files and respond to user queries in the linux environment. The program mimics the functionality of the Unix grep command but utilizes a pre-indexed data structure to provide $O(1)$ word lookups.
