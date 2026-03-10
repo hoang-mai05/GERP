@@ -34,10 +34,10 @@ Note that we use Linear Probing for handling hash collisions.
 ## Getting Started 
 ### Compilation
 To build the executable, run:
-> ```make gerp```
+```make gerp```
 ### Usage
 Run the program by providing the input directory and an initial output file:
-> ```./gerp inputDirectory outputFile ```
+```./gerp inputDirectory outputFile ```
 ### Query Commands
 Once running, the program accepts the following commands:
  * ```word:``` Performs a case-sensitive search for "word".
